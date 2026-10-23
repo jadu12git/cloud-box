@@ -1,11 +1,11 @@
-name: Build and test
+name: Build, unit tests and Docker integration
 
 on:
   push:
   pull_request:
 
 jobs:
-  test:
+  unit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,7 +14,21 @@ jobs:
           distribution: temurin
           java-version: '21'
           cache: maven
-      - name: Run JUnit tests
-        run: mvn -B test
-      - name: Build application
-        run: mvn -B -DskipTests package
+      - run: mvn -B test
+      - run: mvn -B -DskipTests package
+
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and start PostgreSQL, coordinator, and three storage nodes
+        run: docker compose up -d --build --wait
+      - name: Run live distributed storage integration suite
+        run: python3 tests/integration_test.py
+      - name: Collect Docker logs on failure
+        if: failure()
+        run: docker compose logs --no-color --tail=150
+      - name: Stop containers (keep volumes unless runner is destroyed)
+        if: always()
+        run: docker compose down
