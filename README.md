@@ -77,6 +77,25 @@ Reset development data: `docker compose down -v` (**deletes stored files and met
 - Internal endpoints assume an isolated, trusted network. Add authentication, TLS, rate limiting, and credential management before public internet deployment.
 - This repository is **deployment-ready for a local Docker environment**, not a claimed production-hardened cloud storage platform.
 
+
+## Live Docker + PostgreSQL integration tests
+
+The repository also has a **real-system integration suite** at [tests/integration_test.py](tests/integration_test.py). Unlike the JUnit unit tests, it sends HTTP requests to the running coordinator, uses the actual PostgreSQL database, and exercises actual replicated chunk storage in Docker volumes.
+
+Run from the repository root on a machine with Docker Desktop and Python 3:
+
+```bash
+git pull
+docker compose up -d --build
+python3 tests/integration_test.py
+```
+
+The suite verifies: multi-chunk binary upload, SHA-256, byte-for-byte download, SQL metadata, repeated uploads with distinct IDs, empty files, download with one failed storage node, PostgreSQL restart, and coordinator restart. It cleans up test *metadata* and restarts the deliberately stopped node, but existing CloudBox design intentionally retains physical chunk objects.
+
+**Important:** This suite temporarily stops `node1` and restarts PostgreSQL and the coordinator. Run it against a disposable local development stack, not a live production environment. It does not delete Docker volumes.
+
+GitHub Actions runs both `mvn test` and this Docker integration test on pushes and pull requests. See the [Actions page](https://github.com/jadu12git/cloud-box/actions) for the actual pass/fail outcome.
+
 ## Test coverage
 
 JUnit 5 tests cover chunk checksums and idempotent duplicate storage, multi-chunk upload and retrieval, failed-node write fallback, failed-node read fallback, corrupted-replica fallback, and insufficient-replica upload failure. Run `mvn test` to verify.
