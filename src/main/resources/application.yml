@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: cloudbox
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/cloudbox}
+    username: ${DATABASE_USER:cloudbox}
+    password: ${DATABASE_PASSWORD:cloudbox}
+  sql:
+    init:
+      mode: always
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+server:
+  port: ${PORT:8080}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+cloudbox:
+  role: ${CLOUDBOX_ROLE:coordinator}
+  data-dir: ${DATA_DIR:./data}
+  nodes: ${STORAGE_NODES:http://localhost:8081,http://localhost:8082,http://localhost:8083}
+  replicas: ${REPLICATION_FACTOR:2}
+  chunk-size: ${CHUNK_SIZE:1048576}

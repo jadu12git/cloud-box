@@ -1,0 +1,6 @@
+target/
+.idea/
+*.iml
+data/
+.env
+.DS_Store
