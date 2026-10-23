@@ -61,7 +61,9 @@ public class FileService {
         return repository.find(id).orElseThrow(() -> new NoSuchElementException("File not found"));
     }
 
-    public List<FileRepository.StoredFile> list() { return repository.list(); }
+    public List<FileRepository.StoredFile> list() {
+        return repository.list().stream().map(f -> metadata(f.id())).toList();
+    }
 
     public byte[] download(UUID id) throws IOException {
         var file = metadata(id);
