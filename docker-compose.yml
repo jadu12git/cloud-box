@@ -25,7 +25,8 @@ services:
       <<: *app-env
       CLOUDBOX_ROLE: coordinator
     ports:
-      - "8080:8080"
+      # Local development only: the coordinator has no authentication.
+      - "127.0.0.1:8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
