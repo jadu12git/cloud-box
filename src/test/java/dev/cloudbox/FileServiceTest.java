@@ -100,4 +100,15 @@ class FileServiceTest {
         assertEquals(0, file.chunks().size());
         assertArrayEquals(new byte[0], service.download(file.id()));
     }
+    @Test void rejectsDuplicateStorageNodeUrls() {
+        var error = assertThrows(IllegalArgumentException.class,
+                () -> new CloudBoxProperties("coordinator", "data", "n1,n1,n2", 2, 4));
+        assertEquals("Storage node URLs must be unique", error.getMessage());
+    }
+
+    @Test void acceptsDistinctStorageNodes() {
+        var properties = new CloudBoxProperties("coordinator", "data", "n1,n2,n3", 2, 4);
+        assertEquals(List.of("n1", "n2", "n3"), properties.nodes);
+    }
+
 }
