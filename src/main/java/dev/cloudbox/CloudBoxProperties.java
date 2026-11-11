@@ -2,6 +2,7 @@ package dev.cloudbox;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.HashSet;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +26,10 @@ public class CloudBoxProperties {
         this.chunkSize = chunkSize;
         if (chunkSize < 1 || replicas < 1 || replicas > this.nodes.size()) {
             throw new IllegalArgumentException("Invalid chunk size or replication factor");
+        }
+        // Replicas must be placed on distinct configured storage nodes.
+        if (new HashSet<>(this.nodes).size() != this.nodes.size()) {
+            throw new IllegalArgumentException("Storage node URLs must be unique");
         }
     }
 
