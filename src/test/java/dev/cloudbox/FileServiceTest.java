@@ -111,4 +111,17 @@ class FileServiceTest {
         assertEquals(List.of("n1", "n2", "n3"), properties.nodes);
     }
 
+    @Test void rejectsDownloadWhenWholeFileChecksumDoesNotMatch() throws Exception {
+        byte[] bytes = "abcdefgh".getBytes();
+        var file = service.upload(new ByteArrayInputStream(bytes), "x", "text/plain");
+        // Each stored chunk remains valid, but the file-level metadata is corrupted.
+        var corruptedMetadata = new FileRepository.StoredFile(
+                file.id(), file.filename(), file.contentType(), file.size(),
+                Hashing.sha256("different content".getBytes()), file.chunks());
+        when(repository.find(file.id())).thenReturn(Optional.of(corruptedMetadata));
+
+        var error = assertThrows(IOException.class, () -> service.download(file.id()));
+        assertEquals("Whole-file checksum verification failed", error.getMessage());
+    }
+
 }
