@@ -124,4 +124,16 @@ class FileServiceTest {
         assertEquals("Whole-file checksum verification failed", error.getMessage());
     }
 
+    @Test void rejectsDuplicateNodeUrlsWithTrailingSlash() {
+        var error = assertThrows(IllegalArgumentException.class,
+                () -> new CloudBoxProperties("coordinator", "data", "http://n1,http://n1/,http://n2", 2, 4));
+        assertEquals("Storage node URLs must be unique", error.getMessage());
+    }
+
+    @Test void stripsTrailingSlashesFromStorageNodeUrls() {
+        var properties = new CloudBoxProperties("coordinator", "data",
+                "http://n1/,http://n2///", 2, 4);
+        assertEquals(List.of("http://n1", "http://n2"), properties.nodes);
+    }
+
 }
