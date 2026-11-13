@@ -21,7 +21,11 @@ public class CloudBoxProperties {
             @Value("${cloudbox.chunk-size}") int chunkSize) {
         this.role = role;
         this.dataDir = Path.of(dataDir);
-        this.nodes = List.of(nodes.split(",")).stream().map(String::trim).filter(s -> !s.isEmpty()).toList();
+        this.nodes = List.of(nodes.split(",")).stream()
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .map(s -> s.replaceFirst("/+$", ""))
+                .toList();
         this.replicas = replicas;
         this.chunkSize = chunkSize;
         if (chunkSize < 1 || replicas < 1 || replicas > this.nodes.size()) {
