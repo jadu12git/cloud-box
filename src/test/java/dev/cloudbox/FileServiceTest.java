@@ -135,5 +135,11 @@ class FileServiceTest {
                 "http://n1/,http://n2///", 2, 4);
         assertEquals(List.of("http://n1", "http://n2"), properties.nodes);
     }
+    @Test void rejectsNodeUrlThatBecomesEmptyAfterNormalization() {
+        var error = assertThrows(IllegalArgumentException.class,
+                () -> new CloudBoxProperties("coordinator", "data", "http://n1,///", 2, 4));
+        assertEquals("Storage node URLs must not be empty", error.getMessage());
+    }
+
 
 }
