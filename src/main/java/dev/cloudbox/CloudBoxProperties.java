@@ -31,6 +31,10 @@ public class CloudBoxProperties {
         if (chunkSize < 1 || replicas < 1 || replicas > this.nodes.size()) {
             throw new IllegalArgumentException("Invalid chunk size or replication factor");
         }
+        // Trailing-slash normalization must not turn a configured node into an empty URL.
+        if (this.nodes.stream().anyMatch(String::isEmpty)) {
+            throw new IllegalArgumentException("Storage node URLs must not be empty");
+        }
         // Replicas must be placed on distinct configured storage nodes.
         if (new HashSet<>(this.nodes).size() != this.nodes.size()) {
             throw new IllegalArgumentException("Storage node URLs must be unique");
