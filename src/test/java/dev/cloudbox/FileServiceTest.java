@@ -142,4 +142,12 @@ class FileServiceTest {
     }
 
 
+    @Test void rejectsBlankStorageNodeEntries() {
+        for (String nodes : List.of("n1,,n2", ",n1,n2", "n1,n2,", "n1,   ,n2")) {
+            var error = assertThrows(IllegalArgumentException.class,
+                    () -> new CloudBoxProperties("coordinator", "data", nodes, 2, 4));
+            assertEquals("Storage node URLs must not be empty", error.getMessage());
+        }
+    }
+
 }
