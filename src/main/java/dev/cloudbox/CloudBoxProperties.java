@@ -21,9 +21,8 @@ public class CloudBoxProperties {
             @Value("${cloudbox.chunk-size}") int chunkSize) {
         this.role = role;
         this.dataDir = Path.of(dataDir);
-        this.nodes = List.of(nodes.split(",")).stream()
+        this.nodes = List.of(nodes.split(",", -1)).stream()
                 .map(String::trim)
-                .filter(s -> !s.isEmpty())
                 .map(s -> s.replaceFirst("/+$", ""))
                 .toList();
         this.replicas = replicas;
@@ -31,7 +30,7 @@ public class CloudBoxProperties {
         if (chunkSize < 1 || replicas < 1 || replicas > this.nodes.size()) {
             throw new IllegalArgumentException("Invalid chunk size or replication factor");
         }
-        // Trailing-slash normalization must not turn a configured node into an empty URL.
+        // Reject blank entries, including trailing commas, and slash-only URLs.
         if (this.nodes.stream().anyMatch(String::isEmpty)) {
             throw new IllegalArgumentException("Storage node URLs must not be empty");
         }
