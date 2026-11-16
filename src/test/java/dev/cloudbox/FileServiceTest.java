@@ -150,4 +150,22 @@ class FileServiceTest {
         }
     }
 
+    @Test void failedInputStreamDoesNotPublishPartialUpload() {
+        InputStream failingInput = new InputStream() {
+            private int bytesRead;
+
+            @Override public int read() throws IOException {
+                if (bytesRead++ >= 4) throw new IOException("source stream failed");
+                return 'a';
+            }
+        };
+
+        var error = assertThrows(IOException.class,
+                () -> service.upload(failingInput, "partial.txt", "text/plain"));
+        assertEquals("source stream failed", error.getMessage());
+        // The first chunk may have been replicated, but no incomplete file
+        // should become discoverable through the metadata repository.
+        verify(repository, never()).save(any());
+    }
+
 }
