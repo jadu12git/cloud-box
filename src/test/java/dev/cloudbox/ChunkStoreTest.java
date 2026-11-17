@@ -31,4 +31,12 @@ class ChunkStoreTest {
         Files.write(temp.resolve(hash.substring(0, 2)).resolve(hash), "corrupt".getBytes());
         assertThrows(ChunkStore.CorruptChunkException.class, () -> store.get(hash));
     }
+    @Test void rejectsUnsafeChunkIdentifiersBeforeFilesystemAccess() throws Exception {
+        var store = store();
+        // Chunk identifiers are untrusted input from the internal HTTP endpoint.
+        for (String invalid : new String[] {"../outside", "ab/../outside", "A".repeat(64), "abc"}) {
+            assertThrows(IllegalArgumentException.class, () -> store.get(invalid));
+        }
+    }
+
 }
