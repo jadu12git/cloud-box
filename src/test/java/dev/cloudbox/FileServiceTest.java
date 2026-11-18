@@ -168,4 +168,27 @@ class FileServiceTest {
         verify(repository, never()).save(any());
     }
 
+    @Test void downloadsFromSecondReplicaWhenFirstReturnsNoBody() throws Exception {
+        byte[] bytes = "data".getBytes();
+        var file = service.upload(new ByteArrayInputStream(bytes), "x", "text/plain");
+        var chunk = file.chunks().get(0);
+        String firstNode = chunk.nodes().get(0);
+
+        // A storage HTTP response with no body can yield null rather than an exception.
+        StorageTransport emptyResponseTransport = new StorageTransport() {
+            @Override public void put(String node, String hash, byte[] data) {
+                transport.put(node, hash, data);
+            }
+
+            @Override public byte[] get(String node, String hash) {
+                return node.equals(firstNode) ? null : transport.get(node, hash);
+            }
+        };
+        var fallbackService = new FileService(
+                new CloudBoxProperties("coordinator", "data", "n1,n2,n3", 2, 4),
+                repository, emptyResponseTransport);
+
+        assertArrayEquals(bytes, fallbackService.download(file.id()));
+    }
+
 }
