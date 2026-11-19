@@ -39,4 +39,19 @@ class ChunkStoreTest {
         }
     }
 
+    @Test void detectsSameLengthChunkCorruption() throws Exception {
+        var store = store();
+        byte[] original = "valid".getBytes();
+        String hash = Hashing.sha256(original);
+        store.put(hash, original);
+
+        // Replacing the bytes without changing the length must still fail validation.
+        byte[] corrupted = "other".getBytes();
+        assertEquals(original.length, corrupted.length);
+        Files.write(temp.resolve(hash.substring(0, 2)).resolve(hash), corrupted);
+
+        assertThrows(ChunkStore.CorruptChunkException.class, () -> store.get(hash));
+    }
+
+
 }
